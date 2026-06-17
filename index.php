@@ -17,11 +17,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $comision_plataforma = (float)$_POST['comision_plataforma'];
     $costo_envio = (float)$_POST['costo_envio'];
 
-    // --- AQUÍ CONSTRUIREMOS LAS FÓRMULAS MATEMÁTICAS ---
+// --- FÓRMULAS MATEMÁTICAS REALES ---
     
-    // De momento, una cuenta rápida de prueba:
-    $precio_venta = $costo_base + $costo_envio; 
-    $ganancia_neta = 0; 
+    // 1. Calculamos el costo total sumando el costo del producto + el margen que querés ganar libre
+    $costo_con_margen = $costo_base * (1 + ($porcentaje_ganancia / 100));
+    
+    // 2. Aplicamos la fórmula para que el precio final absorba la comisión de la plataforma y el envío
+    // Si la comisión es del 3%, dividimos por 0.97 para que al descontar el 3% nos dé el número exacto.
+    if ($comision_plataforma < 100) {
+        $precio_venta = ($costo_con_margen + $costo_envio) / (1 - ($comision_plataforma / 100));
+    } else {
+        $precio_venta = 0; // Evita división por cero si ponen 100%
+    }
+
+    // 3. La ganancia neta es lo que te queda en el bolsillo: 
+    // Precio de venta menos lo que te saca la plataforma, menos el envío, menos el costo del producto.
+    $descuento_plataforma = $precio_venta * ($comision_plataforma / 100);
+    $ganancia_neta = $precio_venta - $descuento_plataforma - $costo_envio - $costo_base;
     
     $mostrar_resultado = true;
 }
